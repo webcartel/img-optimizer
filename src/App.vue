@@ -1,25 +1,36 @@
 <template>
-	<div class="" id="app">
+	<div>
+
+		<div class="h-[100px]"></div>
 
 		<div
-			class="flex mx-auto w-[384px] h-[160px] border-[#616778] border-[2px] rounded-[15px] border-dashed"
+			class="flex justify-center items-center mx-auto mb-[80px] w-[384px] h-[160px] border-[#616778] border-[2px] rounded-[15px] border-dashed"
 			v-cloak=""
 			@drop.prevent="addFile"
 			@dragover.prevent=""
-		></div>
+		>Перетащите файлы сюда</div>
 
-		<div class="files">
+		<div class="mx-auto max-w-[600px]">
 			<ul>
-				<li v-for="file in files" :key="file.file_data.name">
+				<li
+					class="flex h-[56px]"
+					v-for="file in files"
+					:key="file.file_data.name">
 
-					<span>{{ file.file_data.name }} ({{ file.file_data.size | kb }} kb)</span>
+					<div class="relative top-[17px] mr-[10px] text-[13px] text-[#9B9B9B]">{{ kb(file.file_data.size) }} kb</div>
 
-					<div class="bar">
-						<div
-							class="progress"
-							:style="{ width: file.progress + '%' }"
-						></div>
+					<div class="flex-auto">
+						<div class="mb-[3px] text-[15px]">{{ file.file_data.name }}</div>
+	
+						<div class="w-full h-[6px] bg-[#eeeeee] rounded-[3px]">
+							<div
+								class="w-full h-[6px] bg-[#8FCB60] rounded-[3px] transition-all duration-300"
+								:style="{ width: file.progress + '%' }"
+							></div>
+						</div>
 					</div>
+
+					<div class="relative top-[17px] ml-[10px] text-[13px]">{{ kb(file.file_data.size) }} kb</div>
 
 				</li>
 			</ul>
@@ -37,7 +48,7 @@ import axios from 'axios'
 const files = ref([])
 
 
-const kb = (val) => Math.floor(val / 1024)
+const kb = (val) => (val / 1024).toFixed(1);
 
 function addFile(e) {
 
