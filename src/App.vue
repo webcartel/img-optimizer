@@ -46,9 +46,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 
 const files = ref([])
-
-
-const kb = (val) => (val / 1024).toFixed(1);
+const token = ref(generateRandomString(64))
 
 function addFile(e) {
 
@@ -83,7 +81,8 @@ function upload() {
 		if (files.value.length != i && !files.value[i].loaded) {
 
 			const formData = new FormData()
-			formData.append("file", files.value[i].file_data)
+			formData.append('token', token.value)
+			formData.append('file', files.value[i].file_data)
 			const file_sign = files.value[i].file_sign
 			
 			axios({
@@ -129,6 +128,21 @@ function upload() {
 
 function download() {
 	files.value.forEach((file, i, arr) => {})
+}
+
+function kb(val) {
+	return (val / 1024).toFixed(1)
+}
+
+function generateRandomString(length) {
+	var result = ''
+	var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+
+	for (var i = 0; i < length; i++) {
+		result += characters.charAt(Math.floor(Math.random() * characters.length))
+	}
+
+	return result
 }
 
 </script>
