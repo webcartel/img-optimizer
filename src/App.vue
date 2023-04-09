@@ -16,56 +16,56 @@
 		</div>
 
 		<div class="mx-auto max-w-[600px]">
-			<ul>
+			<TransitionGroup name="files" tag="ul">
 				<li
-					class="group px-[20px] pt-[6px] pb-[14px] hover:bg-[#eee] transition-all rounded-md"
-					v-for="file in filesStore.getFiles"
-					:key="file.file_data.name"
+					v-for="file in filesStore.getFiles" :key="file.file_data.name"
 				>
-					<div class="flex justify-between">
-						<div class="mb-[3px] text-[15px]">
-							{{ file.file_data.name }}
+					<div class="group px-[20px] pt-[6px] pb-[14px] hover:bg-[#eee] transition-[background-color] duration-150 rounded-md">
+						<div class="flex justify-between">
+							<div class="mb-[3px] text-[15px]">
+								{{ file.file_data.name }}
+							</div>
+							<div class="text-[14px] font-semibold">
+								{{ progress(file.progress) }}
+							</div>
 						</div>
-						<div class="text-[14px] font-semibold">
-							{{ progress(file.progress) }}
-						</div>
-					</div>
 
-					<div class="w-full h-[6px] bg-[#eeeeee] rounded-[3px]">
-						<div
-							class="w-full h-[6px] bg-[#8FCB60] rounded-[3px] transition-all duration-150"
-							:style="{ width: file.progress + '%' }"
-						></div>
-					</div>
+						<div class="w-full h-[6px] bg-[#eeeeee] rounded-[3px]">
+							<div
+								class="w-full h-[6px] bg-[#8FCB60] rounded-[3px] transition-all duration-150"
+								:style="{ width: file.progress + '%' }"
+							></div>
+						</div>
 
-					<div class="flex justify-between relative">
-						<div class="text-[14px] text-[#9B9B9B]">
-							{{ kb(file.file_data.size) }}
-						</div>
-						<div
-							class="hidden absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 group-hover:flex"
-						>
-							<a :href="`${baseUrl}/download/${settingsStore.token}/${file.loaded_data.filename}/${file.file_sign}`" target="_blank">
-								<Icon
-									:icon="mdiDownloadBoxOutline"
-									fill="#616778"
-									class="mb-[10px] w-[29px]"
-								/>
-							</a>
-							<button @click="deleteFile(file.loaded_data.filename)">
-								<Icon
-									:icon="mdiCloseBoxOutline"
-									fill="#616778"
-									class="mb-[10px] w-[29px]"
-								/>
-							</button>
-						</div>
-						<div class="text-[14px] text-[#5d9b2c]">
-							{{ resultSize(file) }}
+						<div class="flex justify-between relative">
+							<div class="text-[14px] text-[#9B9B9B]">
+								{{ kb(file.file_data.size) }}
+							</div>
+							<div
+								class="hidden absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 group-hover:flex"
+							>
+								<a :href="`${baseUrl}/download/${settingsStore.token}/${file.loaded_data.filename}/${file.file_sign}`" target="_blank">
+									<Icon
+										:icon="mdiDownloadBoxOutline"
+										fill="#616778"
+										class="mb-[10px] w-[29px]"
+									/>
+								</a>
+								<button @click="deleteFile(file.loaded_data.filename)">
+									<Icon
+										:icon="mdiCloseBoxOutline"
+										fill="#616778"
+										class="mb-[10px] w-[29px]"
+									/>
+								</button>
+							</div>
+							<div class="text-[14px] text-[#5d9b2c]">
+								{{ resultSize(file) }}
+							</div>
 						</div>
 					</div>
 				</li>
-			</ul>
+			</TransitionGroup>
 		</div>
 	</div>
 </template>
@@ -179,7 +179,9 @@ function deleteFile(filename) {
 		}
 	})
 		.then(res => {
-			console.log(res)
+			if ( res.status === 200 ) {
+				filesStore.deleteFile(res.data.filename)
+			}
 		})
 }
 
@@ -216,3 +218,22 @@ function generateRandomString(length) {
 }
 
 </script>
+
+
+
+<style>
+.files-enter-active,
+.files-leave-active {
+  transition: all 0.2s ease;
+}
+
+.files-enter-from {
+	opacity: 0;
+	transform: translateX(0);
+}
+
+.files-leave-to {
+	opacity: 0;
+	transform: translateX(20%);
+}
+</style>

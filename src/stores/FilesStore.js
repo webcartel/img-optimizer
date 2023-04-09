@@ -24,6 +24,10 @@ export const useFilesStore = defineStore('filesStore', {
 			this.files.push(file)
 		},
 
+		deleteFile(filename) {
+			this.files = this.files.filter(file => file.loaded_data.filename !== filename)
+		},
+
 	}
 
 })
