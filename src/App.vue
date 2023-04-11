@@ -15,6 +15,20 @@
 			<div>Перетащите файлы сюда</div>
 		</div>
 
+		<div class="flex justify-center mb-[20px]" v-if="filesStore.getFilesAmount > 1">
+			<div
+				@click="downloadZip()"
+				class="flex items-center px-10 py-2 text-[16px] border-[2px] border-[#616778] hover:border-[#8bb754] transition-[border-color] duration-200 rounded-[40px] cursor-pointer"
+			>
+				<Icon
+					:icon="mdiPackageDown"
+					fill="#616778"
+					class="mr-[6px] w-[38px]"
+				/>
+				<span>Скачать как ZIP архив</span>
+			</div>
+		</div>
+
 		<div class="mx-auto max-w-[600px]">
 			<TransitionGroup name="files" tag="ul">
 				<li
@@ -77,7 +91,7 @@ import { onMounted, ref } from 'vue'
 import axios, { Axios } from 'axios'
 import { useFilesStore } from './stores/FilesStore'
 import { useSettingsStore } from './stores/SettingsStore'
-import { mdiUploadMultiple, mdiDownloadBoxOutline, mdiCloseBoxOutline } from '@mdi/js'
+import { mdiUploadMultiple, mdiDownloadBoxOutline, mdiCloseBoxOutline, mdiPackageDown } from '@mdi/js'
 import Icon from '@/components/Icon.vue'
 
 const filesStore = useFilesStore()
@@ -215,6 +229,31 @@ function generateRandomString(length) {
 	}
 
 	return result
+}
+
+function downloadZip() {
+	axios({
+		method: 'post',
+		url: `${baseUrl.value}/download-zip`,
+		data: {
+			token: settingsStore.token,
+			files: filesStore.getFilesForZip
+		},
+		responseType: 'arraybuffer',
+	})
+		.then(res => {
+			const blob = new Blob([res.data], { type: 'application/zip' })
+			const url = URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			const now = new Date()
+			const timestamp = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}__${now.getDate()}_${now.getMonth() + 1}_${now.getFullYear()}`
+			link.download = `optimized_files__${timestamp}.zip`
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			URL.revokeObjectURL(url)
+		})
 }
 
 </script>

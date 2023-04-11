@@ -16,6 +16,15 @@ export const useFilesStore = defineStore('filesStore', {
 			return this.files.length
 		},
 
+		getFilesForZip() {
+			return this.files.map(file => {
+				return {
+					file_real_name: file.file_sign,
+					file_server_name: file.loaded_data.filename
+				}
+			})
+		},
+
 	},
 
 	actions: {
