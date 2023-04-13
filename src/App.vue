@@ -80,6 +80,10 @@
 				</li>
 			</TransitionGroup>
 		</div>
+
+		<div class="fixed right-[20px] top-[20px] bottom-[20px] p-[10px] w-full max-w-[400px] z-10">
+			<Notice v-for="(notice, index) in noticesStore.getNotices" :message="notice.message" :type="notice.type" :key="index" />
+		</div>
 	</div>
 </template>
 
@@ -90,11 +94,14 @@ import { onMounted, ref } from 'vue'
 import axios, { Axios } from 'axios'
 import { useFilesStore } from './stores/FilesStore'
 import { useSettingsStore } from './stores/SettingsStore'
+import { useNoticesStore } from './stores/NoticesStore'
 import { mdiUploadMultiple, mdiDownloadBoxOutline, mdiCloseBoxOutline, mdiPackageDown } from '@mdi/js'
 import Icon from '@/components/Icon.vue'
+import Notice from './components/Notice.vue';
 
 const filesStore = useFilesStore()
 const settingsStore = useSettingsStore()
+const noticesStore = useNoticesStore()
 const baseUrl = ref()
 
 
@@ -169,11 +176,12 @@ function upload() {
 					
 				})
 				.catch(err => {
-					console.log(err.response.data);
 					if ( err.response.data.hasOwnProperty('error') ) {
 						if ( err.response.data.error.code === 1 ) {
-							console.log(err.response.data.error.filename);
-							filesStore.deleteFileByRealName(err.response.data.error.filename)
+							noticesStore.setNotice({
+								message: `<p><strong>Ошибка загркзки</strong><br><p>${err.response.data.error.filename}</p></p><p>Файлы этого типа не принимаются</p>`,
+								type: 'error'
+							})
 						}
 					}
 				})
@@ -183,6 +191,7 @@ function upload() {
 		} else {
 
 			clearInterval(tid)
+			filesStore.clearUnloadedFiles()
 
 		}
 
