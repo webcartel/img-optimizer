@@ -73,9 +73,8 @@
 									/>
 								</button>
 							</div>
-							<div class="text-[14px] text-[#5d9b2c]">
-								{{ resultSize(file) }}
-							</div>
+							<div class="group-hover:hidden" v-html="diff(file)"></div>
+							<div class="text-[14px] text-[#5d9b2c]" v-html="resultSize(file)"></div>
 						</div>
 					</div>
 				</li>
@@ -159,7 +158,7 @@ function upload() {
 				},
 
 			})
-				.then(function (resp) {
+				.then(resp => {
 
 					filesStore.getFiles.forEach((item, i, arr) => {
 						if (file_sign == item.file_sign) {
@@ -168,6 +167,15 @@ function upload() {
 						}
 					})
 					
+				})
+				.catch(err => {
+					console.log(err.response.data);
+					if ( err.response.data.hasOwnProperty('error') ) {
+						if ( err.response.data.error.code === 1 ) {
+							console.log(err.response.data.error.filename);
+							filesStore.deleteFileByRealName(err.response.data.error.filename)
+						}
+					}
 				})
 
 			i++
@@ -213,6 +221,16 @@ function resultSize(file) {
 	}
 	else {
 		return `-----`
+	}
+}
+
+function diff(file) {
+	if ( Object.keys(file.loaded_data).length !== 0 ) {
+		const diff = ((file.file_data.size - file.loaded_data.fileSizeInBytes) / (file.file_data.size / 100)).toFixed(1)
+		return `<span class="font-bold text-[13px] text-[#999]">-${diff}%</span>`
+	}
+	else {
+		return ''
 	}
 }
 
@@ -263,7 +281,7 @@ function downloadZip() {
 <style>
 .files-enter-active,
 .files-leave-active {
-  transition: all 0.2s ease;
+	transition: all 0.2s ease;
 }
 
 .files-enter-from {
