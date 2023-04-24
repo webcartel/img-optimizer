@@ -169,14 +169,8 @@ function upload() {
 
 			})
 				.then(resp => {
+					
 					filesStore.setFileLoadingStatus(file_sign, true, resp.data)
-
-					// filesStore.getFiles.forEach((item, i, arr) => {
-					// 	if (file_sign == item.file_sign) {
-					// 		filesStore.getFiles[i].loaded = true
-					// 		filesStore.getFiles[i].loaded_data = resp.data
-					// 	}
-					// })
 					
 				})
 				.catch(err => {
