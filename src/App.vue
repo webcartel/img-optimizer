@@ -39,15 +39,16 @@
 							<div class="mb-[3px] text-[15px]">
 								{{ file.file_data.name }}
 							</div>
-							<div class="text-[14px] font-semibold">
+							<div class="text-[14px] font-semibold" v-if="file.loaded !== false">
 								{{ progress(file.progress) }}
 							</div>
 						</div>
 
-						<div class="w-full h-[6px] bg-[#eeeeee] rounded-[3px]">
+						<div class="w-full h-[6px] bg-[#eeeeee] rounded-[3px]" :class="{'bg-[red]': file.loaded === false}">
 							<div
 								class="w-full h-[6px] bg-[#8FCB60] rounded-[3px] transition-all duration-150"
 								:style="{ width: file.progress + '%' }"
+								v-if="file.loaded || file.loaded === null"
 							></div>
 						</div>
 
@@ -57,6 +58,7 @@
 							</div>
 							<div
 								class="hidden absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 group-hover:flex"
+								v-if="file.loaded"
 							>
 								<a :href="`${baseUrl}/download/${settingsStore.token}/${file.loaded_data.filename}/${file.file_sign}`" target="_blank">
 									<Icon
@@ -73,8 +75,8 @@
 									/>
 								</button>
 							</div>
-							<div class="group-hover:hidden" v-html="diff(file)"></div>
-							<div class="text-[14px] text-[#5d9b2c]" v-html="resultSize(file)"></div>
+							<div class="group-hover:hidden" v-html="diff(file)" v-if="file.loaded"></div>
+							<div class="text-[14px] text-[#5d9b2c]" v-if="file.loaded" v-html="resultSize(file)"></div>
 						</div>
 					</div>
 				</li>
@@ -123,7 +125,7 @@ function addFile(e) {
 			file_data: file,
 			file_sign: file.name,
 			progress: 0,
-			loaded: false,
+			loaded: null,
 			loaded_data: {},
 		})
 
@@ -141,11 +143,12 @@ function upload() {
 
 	let tid = setTimeout(function tick() {
 
-		if (filesStore.getFilesAmount != i && !filesStore.getFiles[i].loaded) {
+		if (filesStore.getFilesAmount != i && filesStore.getFiles[i].loaded === null) {
 
 			const formData = new FormData()
 			formData.append('token', settingsStore.token)
 			formData.append('file', filesStore.getFiles[i].file_data)
+			formData.append('filename', filesStore.getFiles[i].file_sign)
 			const file_sign = filesStore.getFiles[i].file_sign
 			
 			axios({
@@ -166,20 +169,30 @@ function upload() {
 
 			})
 				.then(resp => {
+					filesStore.setFileLoadingStatus(file_sign, true, resp.data)
 
-					filesStore.getFiles.forEach((item, i, arr) => {
-						if (file_sign == item.file_sign) {
-							filesStore.getFiles[i].loaded = true
-							filesStore.getFiles[i].loaded_data = resp.data
-						}
-					})
+					// filesStore.getFiles.forEach((item, i, arr) => {
+					// 	if (file_sign == item.file_sign) {
+					// 		filesStore.getFiles[i].loaded = true
+					// 		filesStore.getFiles[i].loaded_data = resp.data
+					// 	}
+					// })
 					
 				})
 				.catch(err => {
 					if ( err.response.data.hasOwnProperty('error') ) {
+						filesStore.setFileLoadingStatus(err.response.data.error.filename)
+
 						if ( err.response.data.error.code === 1 ) {
 							noticesStore.setNotice({
 								message: `<p><strong>Ошибка загркзки</strong><br><p>${err.response.data.error.filename}</p></p><p>Файлы этого типа не принимаются</p>`,
+								type: 'error'
+							})
+						}
+
+						if ( err.response.data.error.code === 2 ) {
+							noticesStore.setNotice({
+								message: `<p><strong>Ошибка загркзки</strong><br><p>${err.response.data.error.filename}</p></p><p>Файл имеет слишком большой размер</p>`,
 								type: 'error'
 							})
 						}
@@ -191,7 +204,6 @@ function upload() {
 		} else {
 
 			clearInterval(tid)
-			filesStore.clearUnloadedFiles()
 
 		}
 

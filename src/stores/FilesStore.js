@@ -37,8 +37,14 @@ export const useFilesStore = defineStore('filesStore', {
 			this.files = this.files.filter(file => file.loaded_data.filename !== filename)
 		},
 
-		clearUnloadedFiles() {
-			this.files = this.files.filter(file => file.loaded !== false)
+		setFileLoadingStatus(filename, status = false, data = {}) {
+			this.files = this.files.map(file => {
+				if ( file.file_sign === filename ) {
+					file.loaded = status
+					file.loaded_data = data
+				}
+				return file
+			})
 		},
 
 	}
