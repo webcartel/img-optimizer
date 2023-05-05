@@ -24,6 +24,10 @@ export const useNoticesStore = defineStore('noticesStore', {
 			this.notices.push(notice)
 		},
 
+		deleteNotice(noticeId) {
+			this.notices = this.notices.filter(notice => notice.id !== noticeId )
+		},
+
 	}
 
 })

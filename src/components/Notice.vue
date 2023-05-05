@@ -12,9 +12,10 @@
 
 
 <script setup>
-import { reactive, onBeforeMount } from 'vue'
+import { reactive, onBeforeMount, onMounted } from 'vue'
 import { mdiAlertCircle, mdiCheckCircle } from '@mdi/js'
 import Icon from '@/components/Icon.vue'
+const emit = defineEmits()
 
 const props = defineProps({
     message: {
@@ -25,7 +26,17 @@ const props = defineProps({
     type: {
         type: String,
         default: 'message'
-    }
+    },
+
+    id: {
+        type: String,
+        default: null
+    },
+
+    duration: {
+        type: Number,
+        default: 10000
+    },
 })
 
 const appearance = reactive({})
@@ -52,6 +63,12 @@ onBeforeMount(() => {
     }
 })
 
+onMounted(() => {
+    setTimeout(() => {
+        emit('delete', props.id)
+    }, props.duration);
+})
+
 </script>
 
 
@@ -62,6 +79,7 @@ onBeforeMount(() => {
     padding: 12px;
     border-radius: 12px;
     box-shadow: 0 0 16px 6px #ebebeb;
+    background: #fff;
 }
 
 </style>

@@ -75,6 +75,7 @@
 									/>
 								</button>
 							</div>
+							<div class="text-[14px] text-[red]" v-if="!file.loaded">{{ file?.error_message }}</div>
 							<div class="group-hover:hidden" v-html="diff(file)" v-if="file.loaded"></div>
 							<div class="text-[14px] text-[#5d9b2c]" v-if="file.loaded" v-html="resultSize(file)"></div>
 						</div>
@@ -83,9 +84,9 @@
 			</TransitionGroup>
 		</div>
 
-		<div class="fixed right-[20px] top-[20px] bottom-[20px] p-[10px] w-full max-w-[400px] z-10">
-			<Notice v-for="(notice, index) in noticesStore.getNotices" :message="notice.message" :type="notice.type" :key="index" />
-		</div>
+		<TransitionGroup name="notices" tag="div" class="fixed right-[20px] top-[20px] bottom-[20px] p-[10px] w-full max-w-[400px] z-10">
+			<Notice v-for="notice in noticesStore.getNotices" :message="notice.message" :type="notice.type" :id="notice.id" :key="notice.id" @delete="deleteNotice" />
+		</TransitionGroup>
 	</div>
 </template>
 
@@ -127,6 +128,7 @@ function addFile(e) {
 			progress: 0,
 			loaded: null,
 			loaded_data: {},
+			error_message: '',
 		})
 
 		if (arr.length - 1 === i) {
@@ -175,19 +177,22 @@ function upload() {
 				})
 				.catch(err => {
 					if ( err.response.data.hasOwnProperty('error') ) {
-						filesStore.setFileLoadingStatus(err.response.data.error.filename)
 
 						if ( err.response.data.error.code === 1 ) {
+							filesStore.setFileLoadingStatus(err.response.data.error.filename, false, null, 'Файлы этого типа не поддерживаются')
 							noticesStore.setNotice({
-								message: `<p><strong>Ошибка загркзки</strong><br><p>${err.response.data.error.filename}</p></p><p>Файлы этого типа не принимаются</p>`,
-								type: 'error'
+								message: `<p><strong>Ошибка загркзки</strong><br><p>${err.response.data.error.filename}</p></p><p>Файлы этого типа не поддерживаются</p>`,
+								type: 'error',
+								id: generateRandomString(32),
 							})
 						}
 
 						if ( err.response.data.error.code === 2 ) {
+							filesStore.setFileLoadingStatus(err.response.data.error.filename, false, null, 'Файл имеет слишком большой размер')
 							noticesStore.setNotice({
 								message: `<p><strong>Ошибка загркзки</strong><br><p>${err.response.data.error.filename}</p></p><p>Файл имеет слишком большой размер</p>`,
-								type: 'error'
+								type: 'error',
+								id: generateRandomString(32),
 							})
 						}
 					}
@@ -242,7 +247,7 @@ function resultSize(file) {
 function diff(file) {
 	if ( Object.keys(file.loaded_data).length !== 0 ) {
 		const diff = ((file.file_data.size - file.loaded_data.fileSizeInBytes) / (file.file_data.size / 100)).toFixed(1)
-		return `<span class="font-bold text-[13px] text-[#999]">-${diff}%</span>`
+		return `<span class="absolute top-[2px] left-50% transform -translate-x-1/2 font-bold text-[13px] text-[#999]">-${diff}%</span>`
 	}
 	else {
 		return ''
@@ -289,6 +294,10 @@ function downloadZip() {
 		})
 }
 
+function deleteNotice(noticeId) {
+	noticesStore.deleteNotice(noticeId)
+}
+
 </script>
 
 
@@ -308,4 +317,26 @@ function downloadZip() {
 	opacity: 0;
 	transform: translateX(20%);
 }
+
+.notices-enter-active,
+.notices-leave-active {
+	transition: all 0.5s ease;
+}
+.notices-enter-from {
+	opacity: 0;
+	transform: translateX(50%);
+}
+.notices-enter-to {
+	opacity: 1;
+	transform: translateX(0);
+}
+.notices-leave-from {
+	transform: translateX(0);
+	opacity: 1;
+}
+.notices-leave-to {
+	opacity: 0;
+	transform: translateX(50%);
+}
+
 </style>
